@@ -119,6 +119,40 @@ uint32_t BitMnistInference(int8_t *input) {
         return ReLUNorm(layer_out, layer_in, L3_outgoing_weights);
     #endif
 }
+
+#elif defined(MODEL_CNN_Olivetti)
+
+uint32_t BitMnistInference(int8_t *input) {
+    int32_t layer_out[MAX_N_ACTIVATIONS];
+    int8_t layer_in[MAX_N_ACTIVATIONS*4];
+
+    // identical body to MODEL_CNNMNIST — architecture unchanged,
+    // only num_classes differs (handled via L15_outgoing_weights from model header)
+    int32_t *tmpbuf=(int32_t*)layer_out;
+    int32_t *outputptr=(int32_t*)layer_in;
+    for (uint32_t channel=0; channel < L7_out_channels; channel++) {
+        for (uint32_t i=0; i < 16*16; i++) {
+            tmpbuf[i]=input[i];
+        }
+        processconv33ReLU(tmpbuf,  L2_weights + 9*channel,  L2_incoming_x, 4, tmpbuf);
+        processconv33ReLU(tmpbuf, L4_weights + 9*channel,  L4_incoming_x, 4, tmpbuf);
+        processmaxpool22(tmpbuf, L6_incoming_x, tmpbuf);
+        processconv33ReLU(tmpbuf, L7_weights + 9*channel,  L7_incoming_x, 4, tmpbuf);
+        outputptr= processmaxpool22(tmpbuf, L9_incoming_x, outputptr);
+    }
+
+    ReLUNorm((int32_t*)layer_in, layer_in, L7_out_channels * L9_outgoing_x * L9_outgoing_y);
+
+    processfclayer(layer_in, L11_weights, L11_bitperweight, L11_incoming_weights,  L11_outgoing_weights, layer_out);
+    ReLUNorm(layer_out, layer_in, L11_outgoing_weights);
+
+    processfclayer(layer_in, L13_weights, L13_bitperweight, L13_incoming_weights,  L13_outgoing_weights, layer_out);    
+    ReLUNorm(layer_out, layer_in, L13_outgoing_weights);
+
+    processfclayer(layer_in, L15_weights, L15_bitperweight, L15_incoming_weights,  L15_outgoing_weights, layer_out);
+    return ReLUNorm(layer_out, layer_in, L15_outgoing_weights);
+}
+
 #else
     #error "No model defined"
 #endif
