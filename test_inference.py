@@ -9,6 +9,7 @@ import argparse
 import yaml
 import importlib
 import matplotlib.pyplot as plt
+import math
 
 
 # Export quantized model from saved checkpoint
@@ -138,6 +139,12 @@ if __name__ == '__main__':
     # export_test_data_to_c(test_loader2, 'BitNetMCU_MNIST_test_data.h', num=10)
 
     lib = CDLL('./Bitnet_inf.dll')
+    
+    # Collect data for visualization
+    viz_images = []
+    viz_true = []
+    viz_predc = []
+    viz_predpy = []
 
     for input_data, labels in test_loader2:
         input_data = input_data.view(input_data.size(0), -1).cpu().numpy()
@@ -170,6 +177,11 @@ if __name__ == '__main__':
         if (result_c != predict_py[0]):
             print(f'{counter:5} Mismatch between inference engines found. Prediction C: {result_c} Prediction Python: {predict_py[0]} True: {labels[0]}')
             mismatch +=1
+            
+        viz_images.append(input_data.reshape(16, 16))
+        viz_true.append(labels[0])
+        viz_predc.append(result_c)
+        viz_predpy.append(predict_py[0])
 
         counter += 1
 
@@ -180,22 +192,25 @@ if __name__ == '__main__':
     
     print(f'Mismatches between engines: {mismatch} ({mismatch/counter*100}%)')
     
-    # Inference C
-    result_c = lib.Inference(input_data_pointer)
+    # Show all test images in a grid
+    n = len(viz_images)
+    cols = 10
+    rows = math.ceil(n / cols)
 
-    # Inference Python
-    result_py = quantized_model.inference_quantized(input_data)
-    predict_py = np.argmax(result_py, axis=1)
+    fig, axes = plt.subplots(rows, cols, figsize=(cols * 1.3, rows * 1.5))
+    axes = axes.flat
 
-    # Show first few samples
-    if counter < 10:
-        img = input_data.reshape(16, 16)
+    for i in range(rows * cols):
+        ax = axes[i]
+        if i < n:
+            ax.imshow(viz_images[i], cmap='gray')
+            true_label = viz_true[i]
+            pred_c = viz_predc[i]
+            pred_py = viz_predpy[i]
+            color = "green" if (pred_c == true_label and pred_py == true_label) else "red"
+            ax.set_title(f"T:{true_label} C:{pred_c} Py:{pred_py}", color=color, fontsize=6)
+        ax.axis("off")
 
-        plt.figure(figsize=(3,3))
-        plt.imshow(img, cmap='gray')
-        plt.title(
-            f"True={labels[0]}\n"
-            f"Py={predict_py[0]}  C={result_c}"
-        )
-        plt.axis('off')
-        plt.show()
+    plt.tight_layout()
+    plt.show()
+    
