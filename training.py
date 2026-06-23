@@ -268,7 +268,7 @@ if __name__ == '__main__':
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # Dataset selection (MNIST default, EMNIST optional)
-    dataset_name = hyperparameters.get("dataset", "MNIST").upper()
+    dataset_name = hyperparameters.get("dataset", "Olivetti").upper()
 
     if dataset_name == "MNIST":
         num_classes = 10
@@ -294,6 +294,14 @@ if __name__ == '__main__':
         base_dataset_test = EMNIST
         dataset_kwargs = {"split": split, "train": True}
         dataset_kwargs_test = {"split": split, "train": False}
+    elif dataset_name == "OLIVETTI":
+        from olivetti_dataset import OlivettiFacesDataset
+        num_classes = 40
+        mean, std = (0.5454,), (0.1722,)  # Example normalization
+        base_dataset_train = OlivettiFacesDataset
+        base_dataset_test = OlivettiFacesDataset
+        dataset_kwargs = {"train": True}
+        dataset_kwargs_test = {"train": False}
     else:
         raise ValueError(f"Unsupported dataset: {dataset_name}")
 
