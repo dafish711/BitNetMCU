@@ -41,9 +41,9 @@ learning_rate: 0.001
 
 # Data augmentation
 augmentation: True
-rotation1: 12  # rotation1 and rotation2 are used for data augmentation
-rotation2: 12
-elastictransformprobability: 0.4 # probability of applying elastic transform
+rotation1: 10  # rotation1 and rotation2 are used for data augmentation
+rotation2: 10
+elastictransformprobability: 0.2 # probability of applying elastic transform
 
 # channel pruning settings. Requires "MaskLayer" in the model, otherwise these settings have no effect
 lambda_l1: 0.0005         # L1 regularization parameter for mask learning
