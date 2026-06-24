@@ -26,7 +26,7 @@ maxw_quantscale: 0.25  # Used only for clipping_algo='prop'. Determines the rela
 # Learning parameters
 num_epochs: 100  # 5, 20, 80
 batch_size: 16
-scheduler: "CosineWarmRestarts" # "StepLR", "Cosine", "CosineWarmRestarts"
+scheduler: "Cosine" # "StepLR", "Cosine", "CosineWarmRestarts"
 learning_rate: 0.0005
 
 # CosineWarmRestarts parameters
