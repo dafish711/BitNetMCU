@@ -143,6 +143,11 @@ def train_model(model, device, hyperparameters, train_data, test_data):
         'test_loss': [],
         'test_accuracy': [],
     }
+    
+    best_test_loss = float('inf')
+    best_test_acc = 0.0
+    best_state_dict = None
+    best_epoch = -1
 
     # Train the CNN
     for epoch in range(num_epochs):
@@ -215,6 +220,19 @@ def train_model(model, device, hyperparameters, train_data, test_data):
         epoch_time = end_time - start_time
 
         testaccuracy = correct / total * 100
+        
+        current_test_loss = np.mean(test_loss)
+        is_better = (
+            current_test_loss < best_test_loss - 1e-6 or
+            (abs(current_test_loss - best_test_loss) < 1e-6 and testaccuracy > best_test_acc)
+        )
+        
+        if is_better:
+            best_test_loss = current_test_loss
+            best_test_acc = testaccuracy
+            best_epoch = epoch + 1
+            best_state_dict = {k: v.clone() for k, v in model.state_dict().items()}
+
 
         print(f'Epoch [{epoch+1}/{num_epochs}], LTrain:{np.mean(train_loss):.6f} ATrain: {trainaccuracy:.2f}% LTest:{np.mean(test_loss):.6f} ATest: {correct / total * 100:.2f}% Time[s]: {epoch_time:.2f} Act: {activity*100:.1f}% w_clip/entropy[bits]: ', end='')
 
@@ -294,7 +312,7 @@ def train_model(model, device, hyperparameters, train_data, test_data):
 
     writer.close()
 
-    return history
+    return history, best_state_dict, best_epoch, best_test_loss, best_test_acc
 
 def get_next_filename(folder, base_name, ext='.png'):
     os.makedirs(folder, exist_ok=True)
@@ -400,10 +418,15 @@ if __name__ == '__main__':
     summary(model, input_size=(1, 16, 16))  # Assuming the input size is (1, 16, 16)
 
     print('training...')
-    history = train_model(model, device, hyperparameters, train_data, test_data)
+    history, best_state_dict, best_epoch, best_test_loss, best_test_acc = train_model(model, device, hyperparameters, train_data, test_data)
 
-    print('saving model...')
-    torch.save(model.state_dict(), f'modeldata/{runname}.pth')
+    print(f'Best epoch: {best_epoch} | Val Loss: {best_test_loss:.6f} | Val Acc: {best_test_acc:.2f}%')
+
+    print('saving final model...')
+    torch.save(model.state_dict(), f'modeldata/{runname}_final.pth')
+
+    print('saving best model...')
+    torch.save(best_state_dict, f'modeldata/{runname}_best.pth')
     
     # Plot training curves
     import matplotlib.pyplot as plt
