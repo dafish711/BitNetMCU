@@ -426,7 +426,7 @@ if __name__ == '__main__':
     torch.save(model.state_dict(), f'modeldata/{runname}_final.pth')
 
     print('saving best model...')
-    torch.save(best_state_dict, f'modeldata/{runname}_best.pth')
+    torch.save(best_state_dict, f'modeldata/{runname}.pth')
     
     # Plot training curves
     import matplotlib.pyplot as plt
