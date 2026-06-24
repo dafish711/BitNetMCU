@@ -24,7 +24,7 @@ maxw_update_until_epoch: 100 # Update clipping parameters until this epoch, they
 maxw_quantscale: 0.25  # Used only for clipping_algo='prop'. Determines the relation between stddev of weights and max_weight
 
 # Learning parameters
-num_epochs: 150  # 5, 20, 80
+num_epochs: 100 # 5, 20, 80
 batch_size: 16
 scheduler: "Cosine" # "StepLR", "Cosine", "CosineWarmRestarts"
 learning_rate: 0.0005
