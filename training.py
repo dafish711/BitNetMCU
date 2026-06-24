@@ -17,6 +17,8 @@ from torchsummary import summary
 import importlib
 from models import MaskingLayer
 import os
+from sklearn.metrics import classification_report, confusion_matrix,  roc_auc_score
+import seaborn as sns
 
 #----------------------------------------------
 # BitNetMCU training
@@ -260,6 +262,36 @@ def train_model(model, device, hyperparameters, train_data, test_data):
 
     writer.add_hparams(hyperparameters, {'Parameters': numofweights, 'Totalbits': totalbits, 'Accuracy/train': trainaccuracy, 'Accuracy/test': testaccuracy, 'Loss/train': np.mean(train_loss), 'Loss/test': np.mean(test_loss)})
     writer.close()
+    
+    # Final validation-set evaluation (after last epoch)
+    model.eval()
+    with torch.no_grad():
+        outputs = model(all_test_images)
+        probs = torch.softmax(outputs, dim=1).cpu().numpy()
+        preds = outputs.argmax(dim=1).cpu().numpy()
+        true = all_test_labels.cpu().numpy()
+
+    print("\nClassification Report (Validation Set):")
+    print(classification_report(true, preds, zero_division=0))
+
+    try:
+        auc = roc_auc_score(true, probs, multi_class='ovr')
+        print(f"Macro AUC (OvR): {auc:.4f}")
+    except ValueError as e:
+        print(f"Could not compute AUC: {e}")
+
+    cm = confusion_matrix(true, preds)
+    plt.figure(figsize=(10, 8))
+    sns.heatmap(cm, annot=False, cmap='Blues')
+    plt.xlabel('Predicted')
+    plt.ylabel('True')
+    plt.title('Confusion Matrix (Validation Set)')
+    cm_path = get_next_filename('training_curves', f'{runname}_confusion_matrix')
+    plt.savefig(cm_path, dpi=150)
+    plt.show()
+    print(f'Saved confusion matrix to {cm_path}')
+
+    writer.close()
 
     return history
 
@@ -400,4 +432,6 @@ if __name__ == '__main__':
     plt.savefig(save_path, dpi=150)
     print(f'Saved training curves to {save_path}')
     plt.show()
+    
+    
     
