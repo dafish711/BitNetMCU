@@ -26,12 +26,12 @@ maxw_quantscale: 0.25  # Used only for clipping_algo='prop'. Determines the rela
 # Learning parameters
 num_epochs: 150  # 5, 20, 80
 batch_size: 16
-scheduler: "Cosine" # "StepLR", "Cosine", "CosineWarmRestarts"
+scheduler: "CosineWarmRestarts" # "StepLR", "Cosine", "CosineWarmRestarts"
 learning_rate: 0.0005
 
 # CosineWarmRestarts parameters
-# T_0: 5     # Period of the first restart for CosineWarmRestarts - 10+20+40 = 70 epochs, need to step in epoch 69 at minimum LR
-# T_mult: 4  # Factor increasing T_i after a restart
+T_0: 50     # Period of the first restart for CosineWarmRestarts - 10+20+40 = 70 epochs, need to step in epoch 69 at minimum LR
+T_mult: 2  # Factor increasing T_i after a restart
 
 # StepLR parameters
 # lr_decay: 0.1     # lr_decay and step size for StepLR
