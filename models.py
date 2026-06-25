@@ -186,3 +186,40 @@ class CNN_Olivetti(nn.Module):
         x = self.model(x)
         x = self.classifier(x)
         return x
+
+class FC_Olivetti(nn.Module):
+    """
+    Fully Connected Neural Network for Olivetti Faces dataset.
+    16x16 input image, 3 hidden layers with a configurable width.
+
+    @cpldcpu 2024-March-24
+
+    """
+    def __init__(self,network_width1=64,network_width2=64,network_width3=64,QuantType='Binary',WScale='PerTensor',NormType='RMS', num_classes: int = 40):
+        super(FC_Olivetti, self).__init__()
+
+        self.network_width1 = network_width1
+        self.network_width2 = network_width2
+        self.network_width3 = network_width3
+
+        self.model = nn.Sequential(
+            nn.Flatten(),
+            BitLinear(1* 16 *16, network_width1,QuantType=QuantType,NormType=NormType, WScale=WScale),
+            nn.ReLU(),
+            BitLinear(network_width1, network_width2,QuantType=QuantType,NormType=NormType, WScale=WScale),
+            nn.ReLU()
+        )
+
+        if network_width3>0:
+            self.model.add_module("fc3", BitLinear(network_width2, network_width3,QuantType=QuantType,NormType=NormType, WScale=WScale))
+            self.model.add_module("relu_fc2", nn.ReLU())
+
+        last_width = network_width3 if network_width3>0 else network_width2
+        # Output layer parameterized by number of classes (default 10 for MNIST / 47 for EMNIST balanced, etc.)
+        self.classifier= BitLinear(last_width, num_classes,QuantType=QuantType,NormType=NormType, WScale=WScale)
+
+    def forward(self, x):
+        x = self.model(x)
+        x = self.classifier(x)
+
+        return x
