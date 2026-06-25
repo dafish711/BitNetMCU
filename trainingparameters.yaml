@@ -20,11 +20,11 @@ WScale: 'PerTensor' # 'PerTensor', 'PerOutput'
 
 # Clipping parameters - only used for 2 bit and higher quantization
 maxw_algo: 'octav' # 'octav', 'prop' Algorithm used to calculate the clipping parameters (maximum weight)
-maxw_update_until_epoch: 100 # Update clipping parameters until this epoch, they are frozen afterwards
+maxw_update_until_epoch: 70 # Update clipping parameters until this epoch, they are frozen afterwards
 maxw_quantscale: 0.25  # Used only for clipping_algo='prop'. Determines the relation between stddev of weights and max_weight
 
 # Learning parameters
-num_epochs: 100 # 5, 20, 80
+num_epochs: 80 # 5, 20, 80
 batch_size: 16
 scheduler: "Cosine" # "StepLR", "Cosine", "CosineWarmRestarts"
 learning_rate: 0.0005
@@ -41,8 +41,8 @@ learning_rate: 0.0005
 
 # Data augmentation
 augmentation: True
-rotation1: 15  # rotation1 and rotation2 are used for data augmentation
-rotation2: 15
+rotation1: 10  # rotation1 and rotation2 are used for data augmentation
+rotation2: 10
 elastictransformprobability: 0 # probability of applying elastic transform
 
 # channel pruning settings. Requires "MaskLayer" in the model, otherwise these settings have no effect
